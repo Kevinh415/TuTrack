@@ -20,6 +20,8 @@
         </activity>
         <activity android:name=".CategoryMainActivity">
         </activity>
+        <activity android:name=".NewCategoryActivity">
+        </activity>
     </application>
 
 </manifest>

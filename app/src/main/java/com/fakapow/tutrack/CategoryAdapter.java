@@ -17,27 +17,26 @@ import android.widget.Toast;
 
 import java.util.List;
 
-public class MyAdapter extends RecyclerView.Adapter<MyAdapter.WordViewHolder> {
-
+public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder> {
 
     private final LayoutInflater mInflater;
-    private List<Word> mWords; // Cached copy of words
+    private List<Category> mCategories; // Cached copy of words
     private Context context;
 
-    class WordViewHolder extends RecyclerView.ViewHolder {
+    class CategoryViewHolder extends RecyclerView.ViewHolder {
         private final TextView wordItemView;
         private Button viewButton;
-        private Word position;
+        private Category position;
 
-        private WordViewHolder(View itemView) {
+        private CategoryViewHolder(View itemView) {
             super(itemView);
             wordItemView = itemView.findViewById(R.id.name);
             viewButton = itemView.findViewById(R.id.view_button);
             viewButton.setOnClickListener(new View.OnClickListener(){
                 public void onClick(View v){
-                    Log.d("PLEASE", "onClick: " + position.getWord());
+                    Log.d("PLEASE", "onClick: " + position.getCategoryId());
                     Intent intent = new Intent(context, CategoryMainActivity.class);
-                    intent.putExtra("parentId", position.getId());
+                    intent.putExtra("parentId", position.getCategoryId());
                     context.startActivity(intent);
                 }
             });
@@ -49,30 +48,30 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.WordViewHolder> {
         void onClick();
     }
 
-    MyAdapter(Context context) {
+    CategoryAdapter(Context context) {
         mInflater = LayoutInflater.from(context);
         this.context = context;
     }
 
     @Override
-    public WordViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public CategoryViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = mInflater.inflate(R.layout.single_card_name, parent, false);
-        return new WordViewHolder(itemView);
+        return new CategoryViewHolder(itemView);
     }
 
     @Override
-    public void onBindViewHolder(WordViewHolder holder, int position) {
-        if (mWords != null) {
-            holder.position = mWords.get(position);
-            holder.wordItemView.setText(holder.position.getWord());
+    public void onBindViewHolder(CategoryViewHolder holder, int position) {
+        if (mCategories != null) {
+            holder.position = mCategories.get(position);
+            holder.wordItemView.setText(holder.position.getCategoryString());
         } else {
             // Covers the case of data not being ready yet.
             holder.wordItemView.setText("No Word");
         }
     }
 
-    void setWords(List<Word> words){
-        mWords = words;
+    void setCategory(List<Category> category){
+        mCategories = category;
         notifyDataSetChanged();
     }
 
@@ -80,8 +79,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.WordViewHolder> {
     // mWords has not been updated (means initially, it's null, and we can't return null).
     @Override
     public int getItemCount() {
-        if (mWords != null)
-            return mWords.size();
+        if (mCategories != null)
+            return mCategories.size();
         else return 0;
     }
 }

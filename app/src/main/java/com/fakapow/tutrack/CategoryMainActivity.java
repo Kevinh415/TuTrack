@@ -1,6 +1,9 @@
 package com.fakapow.tutrack;
 
+import android.app.Application;
 import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModel;
+import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,15 +21,15 @@ import java.util.List;
 public class CategoryMainActivity extends AppCompatActivity{
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
-    private WordViewModel mWordViewModel;
+    private CategoryViewModel mCategoryViewModel;
     public static final int NEW_WORD_ACTIVITY_REQUEST_CODE = 1;
     private String parentId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        mRecyclerView = (RecyclerView) findViewById(R.id.name_recycler);
+        setContentView(R.layout.category_view);
+        mRecyclerView = (RecyclerView) findViewById(R.id.category_recycler);
         
         //get parentId
         parentId = getIntent().getStringExtra("parentId");
@@ -40,16 +43,16 @@ public class CategoryMainActivity extends AppCompatActivity{
 
         // specify an adapter (see also next example)
         //use Room for the names
-        final MyAdapter mAdapter = new MyAdapter(this);
+        final CategoryAdapter mAdapter = new CategoryAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        mWordViewModel = ViewModelProviders.of(this).get(WordViewModel.class);
-        mWordViewModel.getAllWords().observe(this, new Observer<List<Word>>() {
+        CategoryViewModel mCategoryViewModel = ViewModelProviders.of(this, new MyViewModelFactory(this.getApplication(), parentId)).get(CategoryViewModel.class);
+        mCategoryViewModel.findChildCategories(parentId).observe(this, new Observer<List<Category>>() {
             @Override
-            public void onChanged(@Nullable final List<Word> words) {
+            public void onChanged(@Nullable final List<Category> categories) {
                 // Update the cached copy of the words in the adapter.
-                mAdapter.setWords(words);
+                mAdapter.setCategory(categories);
             }
         });
 
@@ -57,7 +60,7 @@ public class CategoryMainActivity extends AppCompatActivity{
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(CategoryMainActivity.this, NewWordActivity.class);
+                Intent intent = new Intent(CategoryMainActivity.this, NewCategoryActivity.class);
                 startActivityForResult(intent, NEW_WORD_ACTIVITY_REQUEST_CODE);
             }
         });
@@ -67,13 +70,31 @@ public class CategoryMainActivity extends AppCompatActivity{
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == NEW_WORD_ACTIVITY_REQUEST_CODE && resultCode == RESULT_OK) {
-            Word word = new Word(data.getStringExtra(NewWordActivity.EXTRA_REPLY));
-            mWordViewModel.insert(word);
+            Category category= new Category(data.getStringExtra(NewCategoryActivity.EXTRA_REPLY), parentId);
+            CategoryViewModel mCategoryViewModel = ViewModelProviders.of(this, new MyViewModelFactory(this.getApplication(), parentId)).get(CategoryViewModel.class);
+            mCategoryViewModel.insert(category);
         } else {
             Toast.makeText(
                     getApplicationContext(),
                     "Empty! Not saved.",
                     Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public class MyViewModelFactory extends ViewModelProvider.NewInstanceFactory {
+        private Application mApplication;
+        private String mParam;
+
+
+        public MyViewModelFactory(Application application, String param) {
+            mApplication = application;
+            mParam = param;
+        }
+
+
+        @Override
+        public <T extends ViewModel> T create(Class<T> modelClass) {
+            return (T) new CategoryViewModel(mApplication, mParam);
         }
     }
 }
